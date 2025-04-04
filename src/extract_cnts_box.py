@@ -20,17 +20,19 @@ def save_contours_to_file(cnts_inside, file_path):
     with open(file_path, 'w') as f:
         json.dump(contours_list, f)
 
+speed = 1 #ms for showing the window
+
 core_path = '/Volumes/Extreme SSD/Ongoing Project/flume_experiments/'
 flume_experiment = '13b 17a'
-experiment = 'ABBA060114a'
+experiment = 'ABBA060115c'
 
 ref_box = []
 path_im_lib = os.path.join(core_path, flume_experiment, experiment)
 save_path = f'data/{flume_experiment}_{experiment}.json'
-if not os.path.exists(save_path):
-    with open(save_path, 'w') as f:
-        json.dump([], f)
-        
+
+with open(save_path, 'w') as f:
+    json.dump([], f)
+
 ap = argparse.ArgumentParser()
 ap.add_argument("-l", "--path_im_lib", type=str, default=path_im_lib, help="Path to the image library")
 ap.add_argument("-s", "--save_path", type=str, default=save_path, help="Path to save contours")
@@ -65,7 +67,7 @@ else:
     print("Reference box coordinates: ", ref_box)
 
 v = np.median(calib_gray)
-sigma = 1
+sigma = 1.2
 lower = int(max(0, (1.0 - sigma) * v))
 upper = int(min(255, (1.0 + sigma) * v))
 
@@ -107,7 +109,7 @@ for image_file in image_files:
         cv2.drawContours(image, [c], -1, (0, 0, 255), 2)
         cv2.putText(image, f"#{i}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
     cv2.imshow("Contours Inside Reference Box", image)
-    cv2.waitKey(100)
+    cv2.waitKey(speed)
     cv2.destroyAllWindows()
 
 save_contours_to_file(cnts_inside_all, save_path)

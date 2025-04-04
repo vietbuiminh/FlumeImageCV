@@ -17,7 +17,7 @@ def load_contours(file_path):
 #load example contours and plot it
 if __name__ == "__main__":
     # Load contours from the JSON file
-    contours = load_contours('data/13b 17a_ABBA060114a.json')
+    contours = load_contours('data/13b 17a_ABBA060115c.json')
     # Reverse the order of contours
     contours.reverse()
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     cnt_len = len(contours)
     skipping_no = 1
     for i, c in enumerate(contours[::skipping_no]):
-        cv2.drawContours(image, [c], -1, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 2)
+        cv2.drawContours(image, [c], -1, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
         cv2.putText(image, f"#{i*skipping_no}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
 
     # Display the image with contours
