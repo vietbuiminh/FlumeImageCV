@@ -6,6 +6,11 @@ These scripts are designed for extracting contours from images by Computer Visio
 
 ![Contour edge evolution, for example in src/load_contours.py](image1.png)
 
+### All Runs
+All flume experiment runs that I need from from Kim & Muto (2007) for delta evolution modeling.
+
+![all run from data/output_images folder](all_runs.png)
+
 ## Project Structure
 
 ```
