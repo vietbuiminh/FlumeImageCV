@@ -12,21 +12,7 @@ All flume experiment runs that I need from from Kim & Muto (2007) for delta evol
 ![all run from data/output_images folder](all_runs.png)
 
 ## Project Structure
-
-```
-im_data_lab_extraction
-├── src
-│   ├── extract_cnts_box.py      # Main logic for extracting contours from images
-│   ├── save_contours.py          # Functionality to save contours to a JSON file
-│   ├── load_contours.py          # Functionality to load contours from a JSON file
-│   └── utils
-│       └── __init__.py           # Initialization file for utility functions
-├── data
-│   ├── contours.json             # JSON file to store extracted contours
-│   └── README.md                  # Documentation for the data directory
-├── requirements.txt               # List of project dependencies
-└── README.md                      # Overall documentation for the project
-```
+tbd
 
 ## Installation
 
