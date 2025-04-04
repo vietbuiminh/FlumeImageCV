@@ -22,9 +22,9 @@ def save_contours_to_file(cnts_inside, file_path):
 
 speed = 1 #ms for showing the window
 
-core_path = '/Volumes/Extreme SSD/Ongoing Project/flume_experiments/'
-flume_experiment = '13b 17a'
-experiment = 'ABBA060115c'
+core_path = '/Volumes/Extreme SSD/Ongoing Project/flume_experiments/' # replace this with the actual path these data are stored within your local
+flume_experiment = '17b 19c' # replace this with the actual flume experiment name
+experiment = 'ABBA060118a' # replace this with the actual experiment name
 
 ref_box = []
 path_im_lib = os.path.join(core_path, flume_experiment, experiment)
