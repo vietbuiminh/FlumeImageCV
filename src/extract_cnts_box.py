@@ -7,6 +7,9 @@ from imutils import perspective
 from imutils import contours
 import argparse
 import imutils
+import matplotlib.pyplot as plt
+
+METHODS = ['wide', 'tight', 'auto']
 
 def click_event(event, x, y, flags, param):
     polygon_points = param
@@ -20,11 +23,40 @@ def save_contours_to_file(cnts_inside, file_path):
     with open(file_path, 'w') as f:
         json.dump(contours_list, f)
 
+def auto_canny(image, sigma=0.33):
+    v = np.median(image)
+    lower = int(max(0, (1.0 - sigma) * v))
+    upper = int(min(255, (1.0 + sigma) * v))
+    return cv2.Canny(image, lower, upper)
+
+def dilate_erode(image, dilate_iter=1, erode_iter=1):
+    # Dilate and erode the edges
+    dilated = cv2.dilate(image, None, iterations=dilate_iter)
+    eroded = cv2.erode(dilated, None, iterations=erode_iter)
+    return eroded
+
+
+#========ALL CUSTOMIZABLE PARAMETERS===========
+## NOTE: The parameters below are set to the values used in the original code. You may need to adjust them based on your specific requirements.
 speed = 1 #ms for showing the window
 
 core_path = '/Volumes/Extreme SSD/Ongoing Project/flume_experiments/' # replace this with the actual path these data are stored within your local
-flume_experiment = '13b 17a' # replace this with the actual flume experiment name
-experiment = 'ABBA060115c' # replace this with the actual experiment name
+flume_experiment = '17b 19c' # replace this with the actual flume experiment name
+experiment = 'ABBA060119c' # replace this with the actual experiment name
+
+dilation_iter = 1
+erode_iter = 1
+blur_kernel = (17, 17) # prime number
+contrast_alpha = 3 #4 #2
+contrast_beta = 0
+gray_threshold_low = 210
+gray_threshold_high = 255
+selected_method = 'tight' # 'wide', 'tight', 'auto'
+
+# if selected "auto" then set the sigma value
+auto_canny_sigma = 0.55
+
+#========end of customizable parameters=========
 
 ref_box = []
 path_im_lib = os.path.join(core_path, flume_experiment, experiment)
@@ -41,35 +73,89 @@ args = ap.parse_args()
 path_im_lib = args.path_im_lib
 save_path = args.save_path
 
+
 folder_path = args.path_im_lib
 image_files = sorted([f for f in os.listdir(folder_path) if not f.startswith("._")])
 first_image_path = os.path.join(folder_path, image_files[0])
 last_image_path = os.path.join(folder_path, image_files[-1])
 first_image = cv2.imread(first_image_path)
 last_image = cv2.imread(last_image_path)
-cv2.imshow("First Image", first_image)
-cv2.imshow("Last Image", last_image)
+cv2.imshow(f"First & Last Image of {flume_experiment}_{experiment}", np.hstack([first_image, last_image]))
+# cv2.imshow("First Image", first_image)
+# cv2.imshow("Last Image", last_image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
 calib_image = cv2.imread(last_image_path)
 calib_gray = cv2.cvtColor(calib_image, cv2.COLOR_BGR2GRAY)
-calib_gray = cv2.GaussianBlur(calib_gray, (15, 15), 0)
+cv2.imshow("Grayed Image", calib_gray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# make the calib_gray contrast higher
+calib_gray = cv2.convertScaleAbs(calib_gray, alpha=contrast_alpha, beta=contrast_beta)
+cv2.imshow("High Contrast Image", calib_gray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# make threshold filter
+calib_gray = cv2.threshold(calib_gray, gray_threshold_low, gray_threshold_high, cv2.THRESH_BINARY)[1]
+cv2.imshow("Threshold Image", calib_gray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+calib_gray = cv2.GaussianBlur(calib_gray, blur_kernel, 0)
+cv2.imshow(f"Blurred Image {blur_kernel}", calib_gray)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+# calib_gray = dilate_erode(calib_gray, dilate_iter=1, erode_iter=1)
 
 cv2.imshow("Image", calib_image)
 cv2.setMouseCallback("Image", click_event, ref_box)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
+# created a masked_image as the copy of the calib_image
+mask = np.zeros(calib_image.shape[:2], dtype=np.uint8)
 if ref_box == []:
     print("No reference box coordinates provided. Exiting.")
     exit()
-else:
-    print("Reference box coordinates: ", ref_box)
+# else:
+#     #testing the mask
+#     cv2.fillPoly(mask, [np.array(ref_box)], 255) #applying the mask
+#     calib_gray = cv2.bitwise_and(calib_gray, calib_gray, mask=mask)
+#     cv2.imshow("Masked Image", calib_gray)
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
+#     print("Reference box coordinates: ", ref_box)
 
-v = np.median(calib_gray)
-sigma = 1.2
-lower = int(max(0, (1.0 - sigma) * v))
-upper = int(min(255, (1.0 + sigma) * v))
+# v = np.median(calib_gray)
+# sigma = 1
+# lower = int(max(0, (1.0 - sigma) * v))
+# upper = int(min(255, (1.0 + sigma) * v))
+
+# plot a histogram of calib_gray displaying the stacked values of gray
+# hist = cv2.calcHist([calib_gray], [0], None, [256], [0, 256])
+# plt.plot(hist)
+# plt.title("Histogram of Gray Image")
+# plt.xlabel("Pixel Value")
+# plt.ylabel("Frequency")
+# plt.xlim([0, 256])
+# plt.show()
+
+# choose your method of edge detection
+wide = cv2.Canny(calib_gray, 10, 250)
+tight = cv2.Canny(calib_gray, 150, 200)
+auto = auto_canny(calib_gray, auto_canny_sigma)
+
+cv2.imshow("Original", calib_gray)
+cv2.imshow("Edges", np.hstack([wide, tight, auto]))
+key = cv2.waitKey(0) & 0xFF
+if key == 27:  # ESC key
+    cv2.destroyAllWindows()
+    exit()
+else:
+    cv2.destroyAllWindows()
 
 cnts_inside_all = []
 
@@ -77,12 +163,22 @@ for image_file in image_files:
     image_path = os.path.join(folder_path, image_file)
     image = cv2.imread(image_path)
     image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    image_gray_blur = cv2.GaussianBlur(image_gray, (15, 15), 0)  
+    image_gray = cv2.convertScaleAbs(image_gray, alpha=contrast_alpha, beta=contrast_beta)
+    image_gray = cv2.threshold(image_gray, gray_threshold_low, gray_threshold_high, cv2.THRESH_BINARY)[1]
+    # image_gray = cv2.bitwise_and(image_gray, image_gray, mask=mask)
+    image_gray = cv2.GaussianBlur(image_gray, blur_kernel, 0)  
+    # image_gray = cv2.bitwise_and(image_gray, image_gray, mask=mask)
 
-    auto_canny = cv2.Canny(image_gray_blur, lower, upper)
-    dilated = cv2.dilate(auto_canny, None, iterations=1)
-    eroded = cv2.erode(dilated, None, iterations=1)
-    edged = eroded
+    # using case condition to choose the method of edge detection
+    edged = cv2.Canny(image_gray, 10, 250) # wide method
+    if selected_method == 'tight':
+        edged = cv2.Canny(image_gray, 150, 200)
+    elif selected_method == 'auto':
+        edged = auto_canny(image_gray, auto_canny_sigma)
+    else:
+        raise ValueError("Invalid method. Choose from 'wide', 'tight', or 'auto'.")
+
+    edged = dilate_erode(edged, dilate_iter=dilation_iter, erode_iter=erode_iter)
 
     cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
@@ -103,11 +199,31 @@ for image_file in image_files:
             new_contour = np.array(inside_points).reshape((-1, 1, 2)).astype(np.int32)
             cnts_inside.append(new_contour)
 
+    # merge all the contours inside the reference box
+    # if len(cnts_inside) > 1:
+    #     # Sort contours to ensure they are concatenated in a clockwise manner
+    #     sorted_cnts = sorted(cnts_inside, key=lambda c: cv2.contourArea(c), reverse=True)
+    #     concatenated_contour = sorted_cnts[0]
+    #     for next_contour in sorted_cnts[1:]:
+    #         # Find the closest points between the last point of the current contour and the next contour
+    #         distances = dist.cdist(concatenated_contour[:, 0, :], next_contour[:, 0, :])
+    #         min_dist_idx = np.unravel_index(np.argmin(distances), distances.shape)
+    #         # Reorder the next contour to start from the closest point
+    #         next_contour = np.roll(next_contour, -min_dist_idx[1], axis=0)
+    #         # Concatenate the contours
+    #         concatenated_contour = np.concatenate((concatenated_contour, next_contour))
+    #     cnts_inside = [concatenated_contour]
+    # elif len(cnts_inside) == 0:
+    #     print(f"No contours found inside the reference box in {image_file}.")
+    #     continue
+    # else:
+    #     cnts_inside = [cnts_inside[0]]
     cnts_inside_all.extend(cnts_inside)
 
     for i, c in enumerate(cnts_inside):
         cv2.drawContours(image, [c], -1, (0, 0, 255), 2)
-        cv2.putText(image, f"#{i}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+        cv2.putText(image, f"#{i}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+    cv2.bitwise_and(image, image, mask=mask)
     cv2.imshow("Contours Inside Reference Box", image)
     cv2.waitKey(speed)
     cv2.destroyAllWindows()
