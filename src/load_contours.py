@@ -54,7 +54,7 @@ for file_name in os.listdir(data_folder):
 
         for i, c in enumerate(contours[::skipping_no]):
             cv2.drawContours(image, [c], -1, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
-            cv2.putText(image, f"#{i*skipping_no}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
+            # cv2.putText(image, f"#{i*skipping_no}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
 
         output_path = os.path.join(output_folder, f"{os.path.splitext(file_name)[0]}_contours.jpg")
         cv2.imshow("Contours", image)
