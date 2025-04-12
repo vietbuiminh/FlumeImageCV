@@ -1,6 +1,7 @@
 # README for Data Directory
 
 This directory contains data files used by the project.
+I need to explain on the csv file
 
 ## contours.json
 

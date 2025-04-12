@@ -4,7 +4,7 @@ These scripts are designed for extracting contours from images by Computer Visio
 
 ![Contour edge process, for example in src/extract_cnts_box.py](examplerun.gif)
 
-![Contour edge evolution, for example in src/load_contours.py](image1.png)
+![Contour edge evolution, for example in src/load_contours.py](image.png)
 
 ## Transform Matrices
 
