@@ -3,6 +3,8 @@ import json
 import numpy as np
 import cv2
 import os
+import pandas as pd
+import ast
 
 def load_contours(file_path):
 
@@ -14,50 +16,58 @@ def load_contours(file_path):
     
     return contours
 
+def load_contours_csv(file_path):
+    # Load the CSV file into a Pandas DataFrame
+    df = pd.read_csv(file_path, index_col=0)
+    # Convert the 'contours' column from string representation to actual lists of numpy arrays using np.array(eval())
+    df['np_contours'] = df['contours'].apply(lambda x: [np.array(tuple(cnt)) for cnt in ast.literal_eval(x)])
+
+    return df
+
 #load example contours and plot it
-# if __name__ == "__main__":
-#     # Load contours from the JSON file
-#     contours = load_contours('data/13b 17a_ABBA060115c.json')
-#     # Reverse the order of contours
-#     contours.reverse()
+if __name__ == "__main__":
+    # Load contours from the JSON file
+    contours = load_contours('data/13b 17a_ABBA060115c.json')
+    # Reverse the order of contours
+    contours.reverse()
 
-#     # Create a blank image to draw contours
-#     # image = cv2.imread('/Volumes/Extreme SSD/Ongoing Project/flume_experiments/13b 17a/ABBA060114b/OLYMPUS DIGITAL CAMERA0001.JPG')
-#     image = cv2.imread('/Volumes/Extreme SSD/Ongoing Project/flume_experiments/9a 13a/calib-Jan1806/calib03.JPG')
+    # Create a blank image to draw contours
+    # image = cv2.imread('/Volumes/Extreme SSD/Ongoing Project/flume_experiments/13b 17a/ABBA060114b/OLYMPUS DIGITAL CAMERA0001.JPG')
+    image = cv2.imread('/Volumes/Extreme SSD/Ongoing Project/flume_experiments/9a 13a/calib-Jan1806/calib03.JPG')
 
-#     # Plot the contours with indices
-#     cnt_len = len(contours)
-#     skipping_no = 1
-#     for i, c in enumerate(contours[::skipping_no]):
-#         cv2.drawContours(image, [c], -1, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
-#         # cv2.putText(image, f"#{i*skipping_no}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
+    # Plot the contours with indices
+    cnt_len = len(contours)
+    skipping_no = 1
+    for i, c in enumerate(contours[::skipping_no]):
+        cv2.drawContours(image, [c], -1, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
+        # cv2.putText(image, f"#{i*skipping_no}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
 
-#     # Display the image with contours
-#     cv2.imshow("Contours", image)
-#     cv2.waitKey(0)
-#     cv2.destroyAllWindows()
+    # Display the image with contours
+    cv2.imshow("Contours", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 #iterate through the data folder and read all the json file and save each of the contours after drawing them on calibration image
-data_folder = 'data'
-output_folder = 'data/output_images'
-os.makedirs(output_folder, exist_ok=True)
+# data_folder = 'data'
+# output_folder = 'data/output_images'
+# os.makedirs(output_folder, exist_ok=True)
 
-for file_name in os.listdir(data_folder):
-    if file_name.endswith('.json'):
-        file_path = os.path.join(data_folder, file_name)
-        contours = load_contours(file_path)
-        contours.reverse()
+# for file_name in os.listdir(data_folder):
+#     if file_name.endswith('.json'):
+#         file_path = os.path.join(data_folder, file_name)
+#         contours = load_contours(file_path)
+#         contours.reverse()
 
-        image = cv2.imread('/Volumes/Extreme SSD/Ongoing Project/flume_experiments/9a 13a/calib-Jan1806/calib03.JPG')
-        cnt_len = len(contours)
-        skipping_no = 1
+#         image = cv2.imread('/Volumes/Extreme SSD/Ongoing Project/flume_experiments/9a 13a/calib-Jan1806/calib03.JPG')
+#         cnt_len = len(contours)
+#         skipping_no = 1
 
-        for i, c in enumerate(contours[::skipping_no]):
-            cv2.drawContours(image, [c], -1, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
-            # cv2.putText(image, f"#{i*skipping_no}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
+#         for i, c in enumerate(contours[::skipping_no]):
+#             cv2.drawContours(image, [c], -1, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
+#             # cv2.putText(image, f"#{i*skipping_no}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255-255/cnt_len * (i*skipping_no), 255/cnt_len * (i*skipping_no)), 1)
 
-        output_path = os.path.join(output_folder, f"{os.path.splitext(file_name)[0]}_contours.jpg")
-        cv2.imshow("Contours", image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        cv2.imwrite(output_path, image)
+#         output_path = os.path.join(output_folder, f"{os.path.splitext(file_name)[0]}_contours.jpg")
+#         cv2.imshow("Contours", image)
+#         cv2.waitKey(0)
+#         cv2.destroyAllWindows()
+#         cv2.imwrite(output_path, image)

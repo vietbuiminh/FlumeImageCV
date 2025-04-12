@@ -6,6 +6,17 @@ These scripts are designed for extracting contours from images by Computer Visio
 
 ![Contour edge evolution, for example in src/load_contours.py](image1.png)
 
+## Transform Matrices
+
+Using the calibration image of 3 rulers on the angled bed, I used the 4 points to get the perspective and using linear algebra solver to find the transformation matrix that is used to calculated the estimated lengths for L1, L2, L3, and the angle.
+
+Check the gif for the working results of 13b 17a_ABBA060115c or SI Run 4 [Kim & Muto (2007)](https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2006JF000561)
+
+![measured data](msred.gif)
+
+![graph of the measured data](SI_Run4.png)
+
+
 ### All Runs
 All flume experiment runs that I need from from Kim & Muto (2007) for delta evolution modeling.
 

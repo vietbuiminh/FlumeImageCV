@@ -7,6 +7,7 @@ from imutils import perspective
 from imutils import contours
 import argparse
 import imutils
+import pandas as pd
 import matplotlib.pyplot as plt
 
 METHODS = ['wide', 'tight', 'auto']
@@ -39,14 +40,13 @@ def dilate_erode(image, dilate_iter=1, erode_iter=1):
 #========ALL CUSTOMIZABLE PARAMETERS===========
 ## NOTE: The parameters below are set to the values used in the original code. You may need to adjust them based on your specific requirements.
 speed = 1 #ms for showing the window
-
 core_path = '/Volumes/Extreme SSD/Ongoing Project/flume_experiments/' # replace this with the actual path these data are stored within your local
-flume_experiment = '17b 19c' # replace this with the actual flume experiment name
-experiment = 'ABBA060119c' # replace this with the actual experiment name
+flume_experiment = '9a 13a' # replace this with the actual flume experiment name
+experiment = 'ABBA060110b' # replace this with the actual experiment name
 
 dilation_iter = 1
 erode_iter = 1
-blur_kernel = (17, 17) # prime number
+blur_kernel = (15, 15) # prime number
 contrast_alpha = 3 #4 #2
 contrast_beta = 0
 gray_threshold_low = 210
@@ -88,27 +88,27 @@ cv2.destroyAllWindows()
 
 calib_image = cv2.imread(last_image_path)
 calib_gray = cv2.cvtColor(calib_image, cv2.COLOR_BGR2GRAY)
-cv2.imshow("Grayed Image", calib_gray)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
 
 # make the calib_gray contrast higher
-calib_gray = cv2.convertScaleAbs(calib_gray, alpha=contrast_alpha, beta=contrast_beta)
-cv2.imshow("High Contrast Image", calib_gray)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+high_contrast = cv2.convertScaleAbs(calib_gray, alpha=contrast_alpha, beta=contrast_beta)
 
 # make threshold filter
-calib_gray = cv2.threshold(calib_gray, gray_threshold_low, gray_threshold_high, cv2.THRESH_BINARY)[1]
-cv2.imshow("Threshold Image", calib_gray)
+threshold_filter = cv2.threshold(high_contrast, gray_threshold_low, gray_threshold_high, cv2.THRESH_BINARY)[1]
+
+# blur with kernel provided
+gauss_blur = cv2.GaussianBlur(threshold_filter, blur_kernel, 0)
+
+# calib_gray = dilate_erode(calib_gray, dilate_iter=1, erode_iter=1)
+# Display the images in a 2x2 grid
+top_row = np.hstack([calib_gray, high_contrast])
+bottom_row = np.hstack([threshold_filter, gauss_blur])
+grid = np.vstack([top_row, bottom_row])
+
+cv2.imshow("Image Processing Steps (2x2 Grid)", grid)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-calib_gray = cv2.GaussianBlur(calib_gray, blur_kernel, 0)
-cv2.imshow(f"Blurred Image {blur_kernel}", calib_gray)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-# calib_gray = dilate_erode(calib_gray, dilate_iter=1, erode_iter=1)
+calib_gray = gauss_blur
 
 cv2.imshow("Image", calib_image)
 cv2.setMouseCallback("Image", click_event, ref_box)
@@ -158,6 +158,8 @@ else:
     cv2.destroyAllWindows()
 
 cnts_inside_all = []
+
+contours_df = pd.DataFrame(columns=["image_file", "contours"])
 
 for image_file in image_files:
     image_path = os.path.join(folder_path, image_file)
@@ -225,7 +227,17 @@ for image_file in image_files:
         cv2.putText(image, f"#{i}", tuple(c[0][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
     cv2.bitwise_and(image, image, mask=mask)
     cv2.imshow("Contours Inside Reference Box", image)
-    cv2.waitKey(speed)
-    cv2.destroyAllWindows()
-
+    key = cv2.waitKey(speed) & 0xFF
+    if key == 27:  # ESC key
+        break
+    else:
+        cv2.destroyAllWindows()
+    new_row = pd.DataFrame([{"image_file": image_file, "contours": [c.tolist() for c in cnts_inside]}])
+    contours_df = pd.concat([contours_df, new_row], ignore_index=True)
 save_contours_to_file(cnts_inside_all, save_path)
+
+# Save the contours_df to a CSV file
+csv_path = os.path.splitext(save_path)[0] + ".csv"
+contours_df.to_csv(csv_path)
+print(f"Contours saved to {save_path}")
+print(f"Contours DataFrame saved to {csv_path}")
