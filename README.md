@@ -2,6 +2,10 @@
 
 These scripts are designed for extracting contours from images by Computer Vision (cv2) package and saving them for later use. It includes functionality for loading images, processing them to find contours, and saving those contours in a structured format.
 
+Example of volume metric fitting model for a run. This show that the extracted parameters from the images fit quite closely with the expected volume. It make statistically senses that the extracted volume is majority under the red curve.
+
+![](geometric_model.png)
+
 ![Contour edge process, for example in src/extract_cnts_box.py](examplerun.gif)
 
 ![Contour edge evolution, for example in src/load_contours.py](image.png)
